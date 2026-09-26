@@ -18,7 +18,24 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from users.views import login, register, student_profile
+from users.views import (
+    apply_to_opportunity,
+    company_profile,
+    company_applications,
+    company_opportunities,
+    company_opportunity_detail,
+    company_dashboard,
+    admin_dashboard,
+    update_company_application,
+    create_opportunity,
+    login,
+    register,
+    student_profile,
+    student_applications,
+    student_dashboard,
+    student_portfolio,
+    student_portfolio_detail,
+)
 
 from .views import api_root
 
@@ -29,4 +46,17 @@ urlpatterns = [
     path('api/login/', login),
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/student/profile/', student_profile),
+    path('api/student/portfolio/', student_portfolio),
+    path('api/student/portfolio/<int:project_id>/', student_portfolio_detail),
+    path('api/company/profile/', company_profile),
+    path('api/opportunities/', create_opportunity),
+    path('api/company/opportunities/', company_opportunities),
+    path('api/company/opportunities/<int:opportunity_id>/', company_opportunity_detail),
+    path('api/company/dashboard/', company_dashboard),
+    path('api/admin/dashboard/', admin_dashboard),
+    path('api/opportunities/<int:opportunity_id>/apply/', apply_to_opportunity),
+    path('api/applications/', student_applications),
+    path('api/student/dashboard/', student_dashboard),
+    path('api/company/applications/', company_applications),
+    path('api/company/applications/<int:application_id>/', update_company_application),
 ]
