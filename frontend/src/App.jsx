@@ -5,6 +5,11 @@ import CompanyProfile from './CompanyProfile.jsx'
 import CompanyDashboard from './CompanyDashboard.jsx'
 import CreateOpportunity from './CreateOpportunity.jsx'
 import ApplicationsReceived from './ApplicationsReceived.jsx'
+import AdminDashboard from './AdminDashboard.jsx'
+import AdminUsers from './AdminUsers.jsx'
+import AdminOpportunities from './AdminOpportunities.jsx'
+import AdminCompanies from './AdminCompanies.jsx'
+import AdminApplications from './AdminApplications.jsx'
 import MyApplications from './MyApplications.jsx'
 import MyOpportunities from './MyOpportunities.jsx'
 import MyPortfolio from './MyPortfolio.jsx'
@@ -95,6 +100,26 @@ function App() {
 
   if (page === 'student-dashboard' && user?.role === 'student') {
     return <StudentDashboard onNavigate={setPage} />
+  }
+
+  if (page === 'admin-dashboard' && user?.role === 'admin') {
+    return <AdminDashboard onNavigate={setPage} />
+  }
+
+  if (page === 'admin-users' && user?.role === 'admin') {
+    return <AdminUsers onNavigate={setPage} currentUser={user} />
+  }
+
+  if (page === 'admin-opportunities' && user?.role === 'admin') {
+    return <AdminOpportunities onNavigate={setPage} />
+  }
+
+  if (page === 'admin-companies' && user?.role === 'admin') {
+    return <AdminCompanies onNavigate={setPage} />
+  }
+
+  if (page === 'admin-applications' && user?.role === 'admin') {
+    return <AdminApplications onNavigate={setPage} />
   }
 
   if (page === 'my-applications' && user?.role === 'student') {
@@ -221,6 +246,45 @@ function App() {
                   onClick={() => setPage('my-opportunities')}
                 >
                   My Opportunities
+                </button>
+              </>
+            )}
+            {user.role === 'admin' && (
+              <>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setPage('admin-dashboard')}
+                >
+                  Dashboard
+                </button>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setPage('admin-users')}
+                >
+                  Users
+                </button>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setPage('admin-opportunities')}
+                >
+                  Opportunities
+                </button>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setPage('admin-companies')}
+                >
+                  Companies
+                </button>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setPage('admin-applications')}
+                >
+                  Applications
                 </button>
               </>
             )}

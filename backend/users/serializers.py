@@ -382,6 +382,126 @@ class AdminRecentUserSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class AdminUserStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("is_active",)
+
+
+class AdminOpportunitySerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source="company.company_name", read_only=True)
+    required_skills = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Opportunity
+        fields = (
+            "id",
+            "title",
+            "company",
+            "company_name",
+            "opportunity_type",
+            "category",
+            "location",
+            "work_format",
+            "required_skills",
+            "is_active",
+            "created_at",
+        )
+        read_only_fields = fields
+
+    def get_required_skills(self, instance):
+        return [skill.name for skill in instance.required_skills.all()]
+
+
+class AdminOpportunityStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity
+        fields = ("is_active",)
+
+
+class AdminCompanySerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", read_only=True)
+    last_name = serializers.CharField(source="user.last_name", read_only=True)
+    is_active = serializers.BooleanField(source="user.is_active", read_only=True)
+    date_joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
+
+    class Meta:
+        model = CompanyProfile
+        fields = (
+            "id",
+            "user_id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "company_name",
+            "industry",
+            "location",
+            "website",
+            "contact_email",
+            "is_verified",
+            "is_active",
+            "date_joined",
+        )
+        read_only_fields = fields
+
+
+class AdminCompanyStatusSerializer(serializers.Serializer):
+    is_verified = serializers.BooleanField(required=False)
+    is_active = serializers.BooleanField(required=False)
+
+
+class AdminApplicationSerializer(serializers.ModelSerializer):
+    student_profile_id = serializers.IntegerField(source="student.id", read_only=True)
+    student_user_id = serializers.IntegerField(source="student.user.id", read_only=True)
+    username = serializers.CharField(source="student.user.username", read_only=True)
+    first_name = serializers.CharField(source="student.user.first_name", read_only=True)
+    last_name = serializers.CharField(source="student.user.last_name", read_only=True)
+    university = serializers.CharField(source="student.university", read_only=True)
+    major = serializers.CharField(source="student.major", read_only=True)
+    opportunity_id = serializers.IntegerField(source="opportunity.id", read_only=True)
+    opportunity_title = serializers.CharField(source="opportunity.title", read_only=True)
+    company_id = serializers.IntegerField(source="opportunity.company.id", read_only=True)
+    company_name = serializers.CharField(
+        source="opportunity.company.company_name",
+        read_only=True,
+    )
+    opportunity_type = serializers.CharField(
+        source="opportunity.opportunity_type",
+        read_only=True,
+    )
+    opportunity_is_active = serializers.BooleanField(
+        source="opportunity.is_active",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Application
+        fields = (
+            "id",
+            "status",
+            "created_at",
+            "updated_at",
+            "student_profile_id",
+            "student_user_id",
+            "username",
+            "first_name",
+            "last_name",
+            "university",
+            "major",
+            "opportunity_id",
+            "opportunity_title",
+            "company_id",
+            "company_name",
+            "opportunity_type",
+            "opportunity_is_active",
+        )
+        read_only_fields = fields
+
+
 class AdminRecentOpportunitySerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source="company.company_name", read_only=True)
 

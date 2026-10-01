@@ -108,6 +108,151 @@
   margin-top: 1rem;
 }
 
+.admin-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-list-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 2fr;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+}
+
+.admin-list-card h3 {
+  margin: 0;
+  color: #111;
+  font-size: 1.15rem;
+}
+
+.admin-list-card p {
+  margin: 0.35rem 0 0;
+  color: #555;
+}
+
+.admin-list-card dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.admin-list-card dt {
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-list-card dd {
+  margin: 0.25rem 0 0;
+  color: #222;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}
+
+.admin-user-actions button {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-user-actions .apply-button {
+  background: #111;
+  color: #fff;
+}
+
+.admin-user-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-user-note {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.admin-user-error {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.admin-application-card {
+  position: relative;
+}
+
+.application-badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.application-badge.status-applied,
+.application-badge.status-under_review,
+.application-badge.status-interview {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.application-badge.status-accepted {
+  background: #eef8f0;
+  color: #0a7a32;
+}
+
+.application-badge.status-rejected {
+  background: #fff3f3;
+  color: #9c2b2b;
+}
+
+.company-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.badge {
+  padding: 0.25rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge.verified,
+.badge.active {
+  background: #eef8f0;
+  color: #0a7a32;
+}
+
+.badge.unverified,
+.badge.inactive {
+  background: #fff3f3;
+  color: #9c2b2b;
+}
+
 .summary-card,
 .status-item {
   display: flex;
@@ -240,11 +385,14 @@
 
 @media (max-width: 760px) {
   .dashboard-summary,
+  .admin-summary,
   .status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .recent-application-card dl {
+  .recent-application-card dl,
+  .admin-list-card,
+  .admin-list-card dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

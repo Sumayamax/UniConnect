@@ -33,6 +33,12 @@ from .serializers import (
     CompanyOpportunitySerializer,
     AdminRecentOpportunitySerializer,
     AdminRecentUserSerializer,
+    AdminUserStatusSerializer,
+    AdminOpportunitySerializer,
+    AdminOpportunityStatusSerializer,
+    AdminCompanySerializer,
+    AdminCompanyStatusSerializer,
+    AdminApplicationSerializer,
     StudentApplicationSerializer,
     StudentDashboardApplicationSerializer,
     StudentProfileSerializer,
@@ -395,6 +401,46 @@ def company_dashboard(request):
         user=request.user,
         defaults={"company_name": request.user.username},
     )
+    opportunity_counts = Opportunity.objects.filter(company=company).aggregate(
+        total=Count("id"),
+        active=Count("id", filter=Q(is_active=True)),
+        closed=Count("id", filter=Q(is_active=False)),
+    )
+    application_counts = Application.objects.filter(
+        opportunity__company=company,
+    ).aggregate(
+        total=Count("id"),
+        applied=Count("id", filter=Q(status=Application.Status.APPLIED)),
+        under_review=Count("id", filter=Q(status=Application.Status.UNDER_REVIEW)),
+        interview=Count("id", filter=Q(status=Application.Status.INTERVIEW)),
+        accepted=Count("id", filter=Q(status=Application.Status.ACCEPTED)),
+        rejected=Count("id", filter=Q(status=Application.Status.REJECTED)),
+    )
+    recent_applications = (
+        Application.objects.filter(opportunity__company=company)
+        .select_related("opportunity", "student", "student__user")
+        .order_by("-created_at")[:5]
+    )
+
+    return Response(
+        {
+            "total_opportunities": opportunity_counts["total"],
+            "active_opportunities": opportunity_counts["active"],
+            "closed_opportunities": opportunity_counts["closed"],
+            "total_applications": application_counts["total"],
+            "applications_by_status": {
+                "applied": application_counts["applied"],
+                "under_review": application_counts["under_review"],
+                "interview": application_counts["interview"],
+                "accepted": application_counts["accepted"],
+                "rejected": application_counts["rejected"],
+            },
+            "recent_applications": CompanyDashboardApplicationSerializer(
+                recent_applications,
+                many=True,
+            ).data,
+        }
+    )
 
 
 @api_view(["GET"])
@@ -447,46 +493,120 @@ def admin_dashboard(request):
             ).data,
         }
     )
-    opportunity_counts = Opportunity.objects.filter(company=company).aggregate(
-        total=Count("id"),
-        active=Count("id", filter=Q(is_active=True)),
-        closed=Count("id", filter=Q(is_active=False)),
-    )
-    application_counts = Application.objects.filter(
-        opportunity__company=company,
-    ).aggregate(
-        total=Count("id"),
-        applied=Count("id", filter=Q(status=Application.Status.APPLIED)),
-        under_review=Count("id", filter=Q(status=Application.Status.UNDER_REVIEW)),
-        interview=Count("id", filter=Q(status=Application.Status.INTERVIEW)),
-        accepted=Count("id", filter=Q(status=Application.Status.ACCEPTED)),
-        rejected=Count("id", filter=Q(status=Application.Status.REJECTED)),
-    )
-    recent_applications = (
-        Application.objects.filter(opportunity__company=company)
-        .select_related("opportunity", "student", "student__user")
-        .order_by("-created_at")[:5]
-    )
 
-    return Response(
-        {
-            "total_opportunities": opportunity_counts["total"],
-            "active_opportunities": opportunity_counts["active"],
-            "closed_opportunities": opportunity_counts["closed"],
-            "total_applications": application_counts["total"],
-            "applications_by_status": {
-                "applied": application_counts["applied"],
-                "under_review": application_counts["under_review"],
-                "interview": application_counts["interview"],
-                "accepted": application_counts["accepted"],
-                "rejected": application_counts["rejected"],
-            },
-            "recent_applications": CompanyDashboardApplicationSerializer(
-                recent_applications,
-                many=True,
-            ).data,
-        }
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_users(request):
+    users = User.objects.order_by("-date_joined")
+    return Response(AdminRecentUserSerializer(users, many=True).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_user_detail(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    if user.id == request.user.id and request.data.get("is_active") is False:
+        return Response(
+            {"detail": "You cannot deactivate your own admin account."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if set(request.data.keys()) != {"is_active"}:
+        return Response(
+            {"detail": "Only the is_active field can be updated."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = AdminUserStatusSerializer(user, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(AdminRecentUserSerializer(user).data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_opportunities(request):
+    opportunities = (
+        Opportunity.objects.select_related("company")
+        .prefetch_related("required_skills")
+        .order_by("-created_at")
     )
+    return Response(AdminOpportunitySerializer(opportunities, many=True).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_opportunity_detail(request, opportunity_id):
+    opportunity = get_object_or_404(Opportunity, id=opportunity_id)
+
+    if set(request.data.keys()) != {"is_active"}:
+        return Response(
+            {"detail": "Only the is_active field can be updated."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = AdminOpportunityStatusSerializer(opportunity, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(AdminOpportunitySerializer(opportunity).data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_companies(request):
+    companies = (
+        CompanyProfile.objects.select_related("user")
+        .order_by("-user__date_joined")
+    )
+    return Response(AdminCompanySerializer(companies, many=True).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_company_detail(request, company_id):
+    company = get_object_or_404(
+        CompanyProfile.objects.select_related("user"),
+        id=company_id,
+    )
+    supported_fields = {"is_verified", "is_active"}
+    if not request.data or not set(request.data.keys()).issubset(supported_fields):
+        return Response(
+            {"detail": "Only is_verified and is_active can be updated."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = AdminCompanyStatusSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    values = serializer.validated_data
+    if "is_verified" in values:
+        company.is_verified = values["is_verified"]
+        company.save(update_fields=["is_verified"])
+    if "is_active" in values:
+        company.user.is_active = values["is_active"]
+        company.user.save(update_fields=["is_active"])
+
+    return Response(AdminCompanySerializer(company).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_applications(request):
+    applications = (
+        Application.objects.select_related(
+            "student",
+            "student__user",
+            "opportunity",
+            "opportunity__company",
+        )
+        .order_by("-created_at")
+    )
+    return Response(AdminApplicationSerializer(applications, many=True).data)
 
 
 @api_view(["PATCH"])

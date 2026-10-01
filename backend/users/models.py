@@ -47,6 +47,7 @@ class CompanyProfile(models.Model):
     location = models.CharField(max_length=255, blank=True)
     website = models.URLField(blank=True)
     contact_email = models.EmailField(blank=True)
+    is_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return self.company_name
