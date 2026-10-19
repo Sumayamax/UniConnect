@@ -17,7 +17,7 @@ function formatApiErrors(data) {
   return messages.length ? messages : ['Something went wrong.']
 }
 
-function CreateOpportunity({ onNavigate }) {
+function CreateOpportunity() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [requirements, setRequirements] = useState('')
@@ -92,7 +92,7 @@ function CreateOpportunity({ onNavigate }) {
   }
 
   return (
-    <main className="home">
+    <main className="home company-page create-opportunity-page">
       <h1>Create Opportunity</h1>
       <p>Publish an internship or freelance opportunity</p>
 
@@ -217,18 +217,6 @@ function CreateOpportunity({ onNavigate }) {
         </ul>
       )}
 
-      <nav className="page-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>
-          Home
-        </button>
-        <button
-          type="button"
-          className="link-button"
-          onClick={() => onNavigate('opportunities')}
-        >
-          Opportunities
-        </button>
-      </nav>
     </main>
   )
 }

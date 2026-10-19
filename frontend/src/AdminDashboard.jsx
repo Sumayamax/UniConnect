@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import { formatAdminDate } from './adminPresentation.js'
 
 const statusLabels = {
   applied: 'Applied',
@@ -40,7 +41,7 @@ function displayValue(value) {
   return value || 'Not specified'
 }
 
-function AdminDashboard({ onNavigate }) {
+function AdminDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [errors, setErrors] = useState([])
@@ -71,7 +72,7 @@ function AdminDashboard({ onNavigate }) {
   const statusCounts = dashboard?.applications_by_status || {}
 
   return (
-    <main className="home dashboard-page">
+    <main className="home dashboard-page admin-page admin-dashboard-page">
       <h1>Admin Dashboard</h1>
       <p>Monitor UniConnect activity</p>
 
@@ -125,7 +126,7 @@ function AdminDashboard({ onNavigate }) {
                         <div><dt>Email</dt><dd>{displayValue(user.email)}</dd></div>
                         <div><dt>Role</dt><dd>{roleLabels[user.role] || user.role}</dd></div>
                         <div><dt>Status</dt><dd>{user.is_active ? 'Active' : 'Inactive'}</dd></div>
-                        <div><dt>Date joined</dt><dd>{displayValue(user.date_joined)}</dd></div>
+                        <div><dt>Date joined</dt><dd>{formatAdminDate(user.date_joined)}</dd></div>
                       </dl>
                     </article>
                   )
@@ -149,7 +150,7 @@ function AdminDashboard({ onNavigate }) {
                     <dl>
                       <div><dt>Type</dt><dd>{opportunityTypeLabels[opportunity.opportunity_type] || opportunity.opportunity_type}</dd></div>
                       <div><dt>Status</dt><dd>{opportunity.is_active ? 'Active' : 'Closed'}</dd></div>
-                      <div><dt>Created</dt><dd>{displayValue(opportunity.created_at)}</dd></div>
+                      <div><dt>Created</dt><dd>{formatAdminDate(opportunity.created_at)}</dd></div>
                     </dl>
                   </article>
                 ))}
@@ -159,9 +160,6 @@ function AdminDashboard({ onNavigate }) {
         </>
       )}
 
-      <nav className="page-nav dashboard-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>Home</button>
-      </nav>
     </main>
   )
 }

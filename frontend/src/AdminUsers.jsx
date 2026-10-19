@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import { formatAdminDate } from './adminPresentation.js'
 
 const roleLabels = {
   student: 'Student',
@@ -27,7 +28,7 @@ function displayValue(value) {
   return value || 'Not specified'
 }
 
-function AdminUsers({ onNavigate, currentUser }) {
+function AdminUsers({ currentUser }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -89,7 +90,7 @@ function AdminUsers({ onNavigate, currentUser }) {
   }
 
   return (
-    <main className="home dashboard-page admin-users-page">
+    <main className="home dashboard-page admin-page admin-users-page">
       <h1>Users</h1>
       <p>Manage UniConnect account access</p>
 
@@ -120,7 +121,7 @@ function AdminUsers({ onNavigate, currentUser }) {
                   <div><dt>Email</dt><dd>{displayValue(user.email)}</dd></div>
                   <div><dt>Role</dt><dd>{roleLabels[user.role] || user.role}</dd></div>
                   <div><dt>Status</dt><dd>{user.is_active ? 'Active' : 'Inactive'}</dd></div>
-                  <div><dt>Date joined</dt><dd>{displayValue(user.date_joined)}</dd></div>
+                  <div><dt>Date joined</dt><dd>{formatAdminDate(user.date_joined)}</dd></div>
                 </dl>
                 <div className="admin-user-actions">
                   {isCurrentUser ? (
@@ -147,14 +148,6 @@ function AdminUsers({ onNavigate, currentUser }) {
         </section>
       )}
 
-      <nav className="page-nav dashboard-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('admin-dashboard')}>
-          Dashboard
-        </button>
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>
-          Home
-        </button>
-      </nav>
     </main>
   )
 }

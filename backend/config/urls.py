@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -22,6 +24,7 @@ from users.views import (
     apply_to_opportunity,
     company_profile,
     company_applications,
+    company_candidate_detail,
     company_opportunities,
     company_opportunity_detail,
     company_dashboard,
@@ -35,6 +38,7 @@ from users.views import (
     admin_applications,
     update_company_application,
     create_opportunity,
+    opportunity_detail,
     login,
     register,
     student_profile,
@@ -57,6 +61,7 @@ urlpatterns = [
     path('api/student/portfolio/<int:project_id>/', student_portfolio_detail),
     path('api/company/profile/', company_profile),
     path('api/opportunities/', create_opportunity),
+    path('api/opportunities/<int:opportunity_id>/', opportunity_detail),
     path('api/company/opportunities/', company_opportunities),
     path('api/company/opportunities/<int:opportunity_id>/', company_opportunity_detail),
     path('api/company/dashboard/', company_dashboard),
@@ -72,5 +77,6 @@ urlpatterns = [
     path('api/applications/', student_applications),
     path('api/student/dashboard/', student_dashboard),
     path('api/company/applications/', company_applications),
+    path('api/company/candidates/<int:student_id>/', company_candidate_detail),
     path('api/company/applications/<int:application_id>/', update_company_application),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

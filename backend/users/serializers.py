@@ -65,6 +65,8 @@ class StudentProfileSerializer(serializers.Serializer):
     major = serializers.CharField(max_length=255, required=False, allow_blank=True)
     year_of_study = serializers.IntegerField(required=False, allow_null=True)
     bio = serializers.CharField(required=False, allow_blank=True)
+    experience = serializers.CharField(required=False, allow_blank=True)
+    profile_photo = serializers.ImageField(required=False, allow_null=True)
     github_url = serializers.URLField(required=False, allow_blank=True)
     linkedin_url = serializers.URLField(required=False, allow_blank=True)
     skills = serializers.ListField(
@@ -73,6 +75,13 @@ class StudentProfileSerializer(serializers.Serializer):
     )
 
     def to_representation(self, instance):
+        profile_photo = None
+        if instance.profile_photo:
+            profile_photo = instance.profile_photo.url
+            request = self.context.get("request")
+            if request is not None:
+                profile_photo = request.build_absolute_uri(profile_photo)
+
         return {
             "first_name": instance.user.first_name,
             "last_name": instance.user.last_name,
@@ -80,6 +89,8 @@ class StudentProfileSerializer(serializers.Serializer):
             "major": instance.major,
             "year_of_study": instance.year_of_study,
             "bio": instance.bio,
+            "experience": instance.experience,
+            "profile_photo": profile_photo,
             "github_url": instance.github_url,
             "linkedin_url": instance.linkedin_url,
             "skills": list(instance.skills.values_list("name", flat=True)),
@@ -538,3 +549,42 @@ class PortfolioProjectSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+class CompanyCandidateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "first_name", "last_name", "email")
+        read_only_fields = fields
+
+
+class CompanyCandidateProfileSerializer(serializers.ModelSerializer):
+    skills = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
+    )
+
+    class Meta:
+        model = StudentProfile
+        fields = (
+            "id",
+            "university",
+            "major",
+            "year_of_study",
+            "bio",
+            "github_url",
+            "linkedin_url",
+            "skills",
+        )
+        read_only_fields = fields
+
+
+class CompanyCandidateApplicationSerializer(serializers.ModelSerializer):
+    opportunity_id = serializers.IntegerField(source="opportunity.id", read_only=True)
+    opportunity_title = serializers.CharField(source="opportunity.title", read_only=True)
+
+    class Meta:
+        model = Application
+        fields = ("id", "status", "created_at", "opportunity_id", "opportunity_title")
+        read_only_fields = fields

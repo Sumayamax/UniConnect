@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import Login from './Login.jsx'
-import Register from './Register.jsx'
+import AuthPage from './AuthPage.jsx'
 import CompanyProfile from './CompanyProfile.jsx'
 import CompanyDashboard from './CompanyDashboard.jsx'
 import CreateOpportunity from './CreateOpportunity.jsx'
@@ -14,9 +13,18 @@ import MyApplications from './MyApplications.jsx'
 import MyOpportunities from './MyOpportunities.jsx'
 import MyPortfolio from './MyPortfolio.jsx'
 import Opportunities from './Opportunities.jsx'
+import OpportunityDetails from './OpportunityDetails.jsx'
 import StudentProfile from './StudentProfile.jsx'
 import StudentDashboard from './StudentDashboard.jsx'
+import CandidateProfile from './CandidateProfile.jsx'
+import AuthenticatedShell from './AuthenticatedShell.jsx'
 import './App.css'
+
+const THEME_STORAGE_KEY = 'uniconnect-theme'
+
+function getInitialTheme() {
+  return localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+}
 
 function loadStoredUser() {
   try {
@@ -27,8 +35,15 @@ function loadStoredUser() {
   }
 }
 
+function getInitialPage() {
+  return loadStoredUser() ? 'home' : 'login'
+}
+
 function App() {
-  const [page, setPage] = useState('home')
+  const [page, setPage] = useState(getInitialPage)
+  const [theme, setTheme] = useState(getInitialTheme)
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState(null)
+  const [selectedStudentId, setSelectedStudentId] = useState(null)
   const [user, setUser] = useState(loadStoredUser)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -37,7 +52,7 @@ function App() {
   useEffect(() => {
     const handleAuthExpired = () => {
       setUser(null)
-      setPage('home')
+      setPage('login')
     }
 
     window.addEventListener('auth-expired', handleAuthExpired)
@@ -83,81 +98,106 @@ function App() {
     localStorage.removeItem('refresh')
     localStorage.removeItem('user')
     setUser(null)
-    setPage('home')
+    setPage('login')
+  }
+
+  const handleThemeChange = () => {
+    setTheme((currentTheme) => {
+      const nextTheme = currentTheme === 'light' ? 'dark' : 'light'
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme)
+      return nextTheme
+    })
+  }
+
+  const handleNavigate = (nextPage, params = {}) => {
+    if (nextPage === 'opportunity-details') {
+      setSelectedOpportunityId(params.opportunityId)
+    }
+    if (nextPage === 'candidate-profile') {
+      setSelectedStudentId(params.studentId)
+    }
+    setPage(nextPage)
   }
 
   if (page === 'register') {
-    return <Register onNavigate={setPage} />
+    return (
+      <AuthPage
+        initialMode="register"
+        onNavigate={setPage}
+        onLoginSuccess={handleLoginSuccess}
+        theme={theme}
+      />
+    )
   }
 
   if (page === 'login') {
-    return <Login onNavigate={setPage} onLoginSuccess={handleLoginSuccess} />
+    return (
+      <AuthPage
+        initialMode="login"
+        onNavigate={setPage}
+        onLoginSuccess={handleLoginSuccess}
+        theme={theme}
+      />
+    )
   }
+
+  let pageContent = null
 
   if (page === 'student-profile') {
-    return <StudentProfile onNavigate={setPage} />
+    pageContent = <StudentProfile onNavigate={setPage} />
+  } else if (page === 'student-dashboard' && user?.role === 'student') {
+    pageContent = <StudentDashboard onNavigate={setPage} />
+  } else if (page === 'admin-dashboard' && user?.role === 'admin') {
+    pageContent = <AdminDashboard />
+  } else if (page === 'admin-users' && user?.role === 'admin') {
+    pageContent = <AdminUsers currentUser={user} />
+  } else if (page === 'admin-opportunities' && user?.role === 'admin') {
+    pageContent = <AdminOpportunities />
+  } else if (page === 'admin-companies' && user?.role === 'admin') {
+    pageContent = <AdminCompanies />
+  } else if (page === 'admin-applications' && user?.role === 'admin') {
+    pageContent = <AdminApplications />
+  } else if (page === 'my-applications' && user?.role === 'student') {
+    pageContent = <MyApplications onNavigate={setPage} />
+  } else if (page === 'my-portfolio' && user?.role === 'student') {
+    pageContent = <MyPortfolio onNavigate={setPage} />
+  } else if (page === 'my-opportunities' && user?.role === 'company') {
+    pageContent = <MyOpportunities onNavigate={setPage} />
+  } else if (page === 'company-profile' && user?.role === 'company') {
+    pageContent = <CompanyProfile onNavigate={setPage} />
+  } else if (page === 'company-dashboard' && user?.role === 'company') {
+    pageContent = <CompanyDashboard onNavigate={setPage} />
+  } else if (page === 'applications-received' && user?.role === 'company') {
+    pageContent = <ApplicationsReceived onNavigate={handleNavigate} />
+  } else if (page === 'candidate-profile' && user?.role === 'company') {
+    pageContent = (
+      <CandidateProfile
+        studentId={selectedStudentId}
+        onNavigate={handleNavigate}
+        user={user}
+      />
+    )
+  } else if (page === 'create-opportunity' && user?.role === 'company') {
+    pageContent = <CreateOpportunity onNavigate={setPage} />
+  } else if (page === 'opportunities' && user) {
+    pageContent = <Opportunities onNavigate={handleNavigate} user={user} />
+  } else if (page === 'opportunity-details' && ['student', 'company'].includes(user?.role)) {
+    pageContent = (
+      <OpportunityDetails
+        opportunityId={selectedOpportunityId}
+        onNavigate={handleNavigate}
+        user={user}
+      />
+    )
   }
 
-  if (page === 'student-dashboard' && user?.role === 'student') {
-    return <StudentDashboard onNavigate={setPage} />
-  }
-
-  if (page === 'admin-dashboard' && user?.role === 'admin') {
-    return <AdminDashboard onNavigate={setPage} />
-  }
-
-  if (page === 'admin-users' && user?.role === 'admin') {
-    return <AdminUsers onNavigate={setPage} currentUser={user} />
-  }
-
-  if (page === 'admin-opportunities' && user?.role === 'admin') {
-    return <AdminOpportunities onNavigate={setPage} />
-  }
-
-  if (page === 'admin-companies' && user?.role === 'admin') {
-    return <AdminCompanies onNavigate={setPage} />
-  }
-
-  if (page === 'admin-applications' && user?.role === 'admin') {
-    return <AdminApplications onNavigate={setPage} />
-  }
-
-  if (page === 'my-applications' && user?.role === 'student') {
-    return <MyApplications onNavigate={setPage} />
-  }
-
-  if (page === 'my-portfolio' && user?.role === 'student') {
-    return <MyPortfolio onNavigate={setPage} />
-  }
-
-  if (page === 'my-opportunities' && user?.role === 'company') {
-    return <MyOpportunities onNavigate={setPage} />
-  }
-
-  if (page === 'company-profile' && user?.role === 'company') {
-    return <CompanyProfile onNavigate={setPage} />
-  }
-
-  if (page === 'company-dashboard' && user?.role === 'company') {
-    return <CompanyDashboard onNavigate={setPage} />
-  }
-
-  if (page === 'applications-received' && user?.role === 'company') {
-    return <ApplicationsReceived onNavigate={setPage} />
-  }
-
-  if (page === 'create-opportunity' && user?.role === 'company') {
-    return <CreateOpportunity onNavigate={setPage} />
-  }
-
-  if (page === 'opportunities' && user) {
-    return <Opportunities onNavigate={setPage} user={user} />
-  }
-
-  return (
-    <main className="home">
-      <h1>UniConnect</h1>
-      <p>Find internships and freelance opportunities</p>
+  const homeContent = (
+    <main className="home overview-page">
+      <div className="overview-hero">
+        <span className="overview-kicker">Authenticated workspace</span>
+        <h1>Welcome back, {user?.username || 'there'}.</h1>
+        <p>Move your next opportunity forward with a focused workspace for your career journey.</p>
+      </div>
 
       {loading && <p className="api-status">Loading...</p>}
       {error && <p className="api-status error">{error}</p>}
@@ -167,130 +207,23 @@ function App() {
 
       {user ? (
         <>
-          <p className="api-status">
+          <p className="api-status user-context overview-context">
             Logged in as {user.username} ({user.role})
           </p>
-          <nav className="page-nav">
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => setPage('opportunities')}
-            >
-              Opportunities
+          <nav className="overview-shortcuts" aria-label="Workspace shortcuts">
+            <button type="button" onClick={() => setPage('opportunities')}>
+              Explore opportunities
             </button>
             {user.role === 'student' && (
               <>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('student-dashboard')}
-                >
-                  Dashboard
+                <button type="button" onClick={() => setPage('student-dashboard')}>
+                  Open dashboard
                 </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('student-profile')}
-                >
-                  My Profile
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('my-applications')}
-                >
-                  My Applications
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('my-portfolio')}
-                >
-                  My Portfolio
+                <button type="button" onClick={() => setPage('student-profile')}>
+                  Complete profile
                 </button>
               </>
             )}
-            {user.role === 'company' && (
-              <>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('company-dashboard')}
-                >
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('company-profile')}
-                >
-                  Company Profile
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('create-opportunity')}
-                >
-                  Create Opportunity
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('applications-received')}
-                >
-                  Applications Received
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('my-opportunities')}
-                >
-                  My Opportunities
-                </button>
-              </>
-            )}
-            {user.role === 'admin' && (
-              <>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('admin-dashboard')}
-                >
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('admin-users')}
-                >
-                  Users
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('admin-opportunities')}
-                >
-                  Opportunities
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('admin-companies')}
-                >
-                  Companies
-                </button>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setPage('admin-applications')}
-                >
-                  Applications
-                </button>
-              </>
-            )}
-            <button type="button" className="link-button" onClick={handleLogout}>
-              Logout
-            </button>
           </nav>
         </>
       ) : (
@@ -313,6 +246,23 @@ function App() {
       )}
     </main>
   )
+
+  if (user) {
+    return (
+      <AuthenticatedShell
+        page={page}
+        user={user}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        theme={theme}
+        onThemeChange={handleThemeChange}
+      >
+        {pageContent || homeContent}
+      </AuthenticatedShell>
+    )
+  }
+
+  return homeContent
 }
 
 export default App

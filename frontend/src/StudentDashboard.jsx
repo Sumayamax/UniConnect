@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import MatchRing from './MatchRing.jsx'
 
 const statusLabels = {
   applied: 'Applied',
@@ -66,8 +67,11 @@ function StudentDashboard({ onNavigate }) {
 
   return (
     <main className="home dashboard-page">
-      <h1>Student Dashboard</h1>
-      <p>Track your applications and discover relevant opportunities</p>
+      <div className="dashboard-heading">
+        <span className="dashboard-kicker">Personal workspace</span>
+        <h1>Student Dashboard</h1>
+        <p>Track your applications and discover relevant opportunities</p>
+      </div>
 
       {loading && <p className="api-status">Loading...</p>}
 
@@ -80,7 +84,7 @@ function StudentDashboard({ onNavigate }) {
       {!loading && errors.length === 0 && dashboard && (
         <>
           <section className="dashboard-summary" aria-label="Student summary">
-            <div className="summary-card">
+            <div className="summary-card summary-card-primary">
               <span>Total Applications</span>
               <strong>{dashboard.total_applications}</strong>
             </div>
@@ -98,7 +102,7 @@ function StudentDashboard({ onNavigate }) {
             </div>
           </section>
 
-          <section className="dashboard-section" aria-label="Applications by status">
+          <section className="dashboard-section dashboard-panel" aria-label="Applications by status">
             <h2>Applications by Status</h2>
             <div className="status-grid">
               {Object.entries(statusLabels).map(([status, label]) => (
@@ -110,14 +114,18 @@ function StudentDashboard({ onNavigate }) {
             </div>
           </section>
 
-          <section className="dashboard-section" aria-label="Recent applications">
+          <section className="dashboard-section dashboard-panel" aria-label="Recent applications">
             <h2>Recent Applications</h2>
             {recentApplications.length === 0 ? (
               <p className="api-status">No applications yet.</p>
             ) : (
               <div className="recent-application-list">
-                {recentApplications.map((application) => (
-                  <article className="recent-application-card" key={application.id}>
+                {recentApplications.map((application, index) => (
+                  <article
+                    className="recent-application-card"
+                    key={application.id}
+                    style={{ '--card-index': index }}
+                  >
                     <h3>{displayValue(application.opportunity_title)}</h3>
                     <dl>
                       <div>
@@ -143,14 +151,18 @@ function StudentDashboard({ onNavigate }) {
             )}
           </section>
 
-          <section className="dashboard-section" aria-label="Recommended opportunities">
+          <section className="dashboard-section dashboard-panel dashboard-recommendations" aria-label="Recommended opportunities">
             <h2>Recommended Opportunities</h2>
             {recommendedOpportunities.length === 0 ? (
               <p className="api-status">No recommended opportunities right now.</p>
             ) : (
               <div className="recommended-list">
                 {recommendedOpportunities.map((opportunity) => (
-                  <article className="opportunity-card recommended-card" key={opportunity.id}>
+                  <article
+                    className="opportunity-card recommended-card"
+                    key={opportunity.id}
+                    style={{ '--card-index': recommendedOpportunities.indexOf(opportunity) }}
+                  >
                     <div className="opportunity-card-header">
                       <div>
                         <h3>{opportunity.title}</h3>
@@ -158,7 +170,7 @@ function StudentDashboard({ onNavigate }) {
                           {displayValue(opportunity.company_name)}
                         </p>
                       </div>
-                      <strong className="match-score">{opportunity.match_percentage}% Match</strong>
+                      <MatchRing value={opportunity.match_percentage} size={78} />
                     </div>
                     <p className="recommended-type">
                       {opportunityTypeLabels[opportunity.opportunity_type] || opportunity.opportunity_type}
@@ -174,8 +186,14 @@ function StudentDashboard({ onNavigate }) {
                     <div className="recommendation-skills">
                       <span className="matching-label">Matched skills</span>
                       <span className="skill-list">
-                        {opportunity.matched_skills?.length ? opportunity.matched_skills.map((skill) => (
-                          <span className="skill-tag matched-skill-tag" key={skill}>{skill}</span>
+                        {opportunity.matched_skills?.length ? opportunity.matched_skills.map((skill, index) => (
+                          <span
+                            className="skill-tag matched-skill-tag"
+                            key={skill}
+                            style={{ '--skill-index': index }}
+                          >
+                            {skill}
+                          </span>
                         )) : <span className="matching-empty">None matched</span>}
                       </span>
                     </div>

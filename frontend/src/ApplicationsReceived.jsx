@@ -204,6 +204,20 @@ function ApplicationsReceived({ onNavigate }) {
                     {updateErrors[application.id]}
                   </p>
                 )}
+
+                <div className="opportunity-card-actions">
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() =>
+                      onNavigate('candidate-profile', {
+                        studentId: application.student_id,
+                      })
+                    }
+                  >
+                    View Candidate
+                  </button>
+                </div>
               </article>
             )
           })}

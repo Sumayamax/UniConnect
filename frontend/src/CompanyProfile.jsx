@@ -17,7 +17,7 @@ function formatApiErrors(data) {
   return messages.length ? messages : ['Something went wrong.']
 }
 
-function CompanyProfile({ onNavigate }) {
+function CompanyProfile() {
   const [companyName, setCompanyName] = useState('')
   const [description, setDescription] = useState('')
   const [industry, setIndustry] = useState('')
@@ -101,7 +101,7 @@ function CompanyProfile({ onNavigate }) {
   }
 
   return (
-    <main className="home">
+    <main className="home company-page company-profile-page">
       <h1>Company Profile</h1>
       <p>Update your company profile</p>
 
@@ -181,11 +181,6 @@ function CompanyProfile({ onNavigate }) {
         </ul>
       )}
 
-      <nav className="page-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>
-          Home
-        </button>
-      </nav>
     </main>
   )
 }

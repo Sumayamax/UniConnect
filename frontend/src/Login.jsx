@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Login({ onNavigate, onLoginSuccess }) {
+function Login({ onNavigate, onSwitch, onLoginSuccess }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -52,11 +52,14 @@ function Login({ onNavigate, onLoginSuccess }) {
   }
 
   return (
-    <main className="home">
-      <h1>Login</h1>
-      <p>Sign in to UniConnect</p>
+    <div className="auth-form-content">
+      <div className="auth-form-heading">
+        <span className="auth-eyebrow">Member access</span>
+        <h2>Sign in to continue</h2>
+        <p>Pick up where you left off with UniConnect.</p>
+      </div>
 
-      <form className="register-form" onSubmit={handleSubmit}>
+      <form className="auth-form register-form" onSubmit={handleSubmit}>
         <label>
           Username
           <input
@@ -86,15 +89,15 @@ function Login({ onNavigate, onLoginSuccess }) {
 
       {error && <p className="api-status error">{error}</p>}
 
-      <nav className="page-nav">
+      <nav className="page-nav auth-form-nav">
         <button type="button" className="link-button" onClick={() => onNavigate('home')}>
           Home
         </button>
-        <button type="button" className="link-button" onClick={() => onNavigate('register')}>
-          Register
+        <button type="button" className="link-button auth-switch-button" onClick={() => onSwitch('register')}>
+          New here? <strong>Sign up</strong>
         </button>
       </nav>
-    </main>
+    </div>
   )
 }
 

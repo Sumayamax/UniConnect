@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import { formatAdminDate } from './adminPresentation.js'
 
 const opportunityTypeLabels = {
   internship: 'Internship',
@@ -32,7 +33,7 @@ function displayValue(value) {
   return value || 'Not specified'
 }
 
-function AdminOpportunities({ onNavigate }) {
+function AdminOpportunities() {
   const [opportunities, setOpportunities] = useState([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -99,7 +100,7 @@ function AdminOpportunities({ onNavigate }) {
   }
 
   return (
-    <main className="home dashboard-page admin-users-page">
+    <main className="home dashboard-page admin-page admin-opportunities-page">
       <h1>Opportunities</h1>
       <p>Moderate all UniConnect opportunities</p>
 
@@ -130,7 +131,7 @@ function AdminOpportunities({ onNavigate }) {
                 <div><dt>Work format</dt><dd>{workFormatLabels[opportunity.work_format] || opportunity.work_format}</dd></div>
                 <div><dt>Required skills</dt><dd>{opportunity.required_skills?.length ? opportunity.required_skills.join(', ') : 'Not specified'}</dd></div>
                 <div><dt>Status</dt><dd>{opportunity.is_active ? 'Active' : 'Inactive'}</dd></div>
-                <div><dt>Created</dt><dd>{displayValue(opportunity.created_at)}</dd></div>
+                <div><dt>Created</dt><dd>{formatAdminDate(opportunity.created_at)}</dd></div>
               </dl>
               <div className="admin-user-actions">
                 <button
@@ -154,14 +155,6 @@ function AdminOpportunities({ onNavigate }) {
         </section>
       )}
 
-      <nav className="page-nav dashboard-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('admin-dashboard')}>
-          Dashboard
-        </button>
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>
-          Home
-        </button>
-      </nav>
     </main>
   )
 }

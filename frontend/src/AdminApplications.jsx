@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import { formatAdminDate } from './adminPresentation.js'
 
 const statusLabels = {
   applied: 'Applied',
@@ -29,7 +30,7 @@ function displayValue(value) {
   return value || 'Not specified'
 }
 
-function AdminApplications({ onNavigate }) {
+function AdminApplications() {
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [errors, setErrors] = useState([])
@@ -56,7 +57,7 @@ function AdminApplications({ onNavigate }) {
   }, [])
 
   return (
-    <main className="home dashboard-page admin-users-page">
+    <main className="home dashboard-page admin-page admin-applications-page">
       <h1>Applications</h1>
       <p>Review all applications across UniConnect</p>
 
@@ -90,18 +91,14 @@ function AdminApplications({ onNavigate }) {
                 <div><dt>Major</dt><dd>{displayValue(application.major)}</dd></div>
                 <div><dt>Opportunity type</dt><dd>{displayValue(application.opportunity_type)}</dd></div>
                 <div><dt>Opportunity status</dt><dd>{application.opportunity_is_active ? 'Active' : 'Inactive'}</dd></div>
-                <div><dt>Created</dt><dd>{displayValue(application.created_at)}</dd></div>
-                <div><dt>Updated</dt><dd>{displayValue(application.updated_at)}</dd></div>
+                <div><dt>Created</dt><dd>{formatAdminDate(application.created_at)}</dd></div>
+                <div><dt>Updated</dt><dd>{formatAdminDate(application.updated_at)}</dd></div>
               </dl>
             </article>
           ))}
         </section>
       )}
 
-      <nav className="page-nav dashboard-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('admin-dashboard')}>Dashboard</button>
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>Home</button>
-      </nav>
     </main>
   )
 }

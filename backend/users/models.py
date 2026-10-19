@@ -24,6 +24,12 @@ class StudentProfile(models.Model):
     major = models.CharField(max_length=255, blank=True)
     year_of_study = models.PositiveSmallIntegerField(null=True, blank=True)
     bio = models.TextField(blank=True)
+    experience = models.TextField(blank=True)
+    profile_photo = models.ImageField(
+        upload_to="profile_photos/",
+        blank=True,
+        null=True,
+    )
     github_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
     skills = models.ManyToManyField("Skill", blank=True, related_name="students")

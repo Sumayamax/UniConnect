@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import { formatAdminDate } from './adminPresentation.js'
 
 function formatApiErrors(data) {
   if (typeof data?.detail === 'string') {
@@ -21,7 +22,7 @@ function displayValue(value) {
   return value || 'Not specified'
 }
 
-function AdminCompanies({ onNavigate }) {
+function AdminCompanies() {
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -86,7 +87,7 @@ function AdminCompanies({ onNavigate }) {
   }
 
   return (
-    <main className="home dashboard-page admin-users-page">
+    <main className="home dashboard-page admin-page admin-companies-page">
       <h1>Companies</h1>
       <p>Manage company verification and account access</p>
 
@@ -124,7 +125,7 @@ function AdminCompanies({ onNavigate }) {
                 <div><dt>Location</dt><dd>{displayValue(company.location)}</dd></div>
                 <div><dt>Website</dt><dd>{company.website ? <a href={company.website} target="_blank" rel="noreferrer">{company.website}</a> : 'Not specified'}</dd></div>
                 <div><dt>Contact email</dt><dd>{displayValue(company.contact_email)}</dd></div>
-                <div><dt>Date joined</dt><dd>{displayValue(company.date_joined)}</dd></div>
+                <div><dt>Date joined</dt><dd>{formatAdminDate(company.date_joined)}</dd></div>
               </dl>
               <div className="admin-user-actions">
                 <button
@@ -152,10 +153,6 @@ function AdminCompanies({ onNavigate }) {
         </section>
       )}
 
-      <nav className="page-nav dashboard-nav">
-        <button type="button" className="link-button" onClick={() => onNavigate('admin-dashboard')}>Dashboard</button>
-        <button type="button" className="link-button" onClick={() => onNavigate('home')}>Home</button>
-      </nav>
     </main>
   )
 }

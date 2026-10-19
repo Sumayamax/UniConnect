@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth import authenticate
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -29,6 +29,9 @@ from .serializers import (
     StudentOpportunitySerializer,
     RegisterSerializer,
     CompanyApplicationSerializer,
+    CompanyCandidateApplicationSerializer,
+    CompanyCandidateProfileSerializer,
+    CompanyCandidateUserSerializer,
     CompanyDashboardApplicationSerializer,
     CompanyOpportunitySerializer,
     AdminRecentOpportunitySerializer,
@@ -104,9 +107,19 @@ def student_profile(request):
     profile, _ = StudentProfile.objects.get_or_create(user=request.user)
 
     if request.method == "GET":
-        return Response(StudentProfileSerializer(profile).data)
+        return Response(
+            StudentProfileSerializer(
+                profile,
+                context={"request": request},
+            ).data
+        )
 
-    serializer = StudentProfileSerializer(profile, data=request.data, partial=True)
+    serializer = StudentProfileSerializer(
+        profile,
+        data=request.data,
+        partial=True,
+        context={"request": request},
+    )
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
@@ -227,6 +240,29 @@ def create_opportunity(request):
             status=status.HTTP_201_CREATED,
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsOpportunityUser])
+def opportunity_detail(request, opportunity_id):
+    opportunity = get_object_or_404(
+        Opportunity.objects.select_related("company").prefetch_related("required_skills"),
+        id=opportunity_id,
+        is_active=True,
+    )
+
+    if request.user.role == User.Role.STUDENT:
+        student, _ = StudentProfile.objects.get_or_create(user=request.user)
+        serializer = StudentOpportunitySerializer(
+            opportunity,
+            context={
+                "student_skills": list(student.skills.values_list("name", flat=True)),
+            },
+        )
+    else:
+        serializer = OpportunitySerializer(opportunity)
+
+    return Response(serializer.data)
 
 
 @api_view(["GET"])
@@ -392,6 +428,51 @@ def company_applications(request):
         .order_by("-created_at")
     )
     return Response(CompanyApplicationSerializer(applications, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsCompany])
+def company_candidate_detail(request, student_id):
+    company, _ = CompanyProfile.objects.get_or_create(
+        user=request.user,
+        defaults={"company_name": request.user.username},
+    )
+    company_applications = Application.objects.filter(
+        opportunity__company=company,
+    ).select_related("opportunity").order_by("-created_at")
+    student = get_object_or_404(
+        StudentProfile.objects.filter(
+            id=student_id,
+            applications__opportunity__company=company,
+        )
+        .select_related("user")
+        .prefetch_related(
+            "skills",
+            "portfolio_projects",
+            Prefetch(
+                "applications",
+                queryset=company_applications,
+                to_attr="company_applications",
+            ),
+        )
+        .distinct(),
+        id=student_id,
+    )
+
+    return Response(
+        {
+            "user": CompanyCandidateUserSerializer(student.user).data,
+            "student_profile": CompanyCandidateProfileSerializer(student).data,
+            "portfolio": PortfolioProjectSerializer(
+                student.portfolio_projects.all(),
+                many=True,
+            ).data,
+            "applications": CompanyCandidateApplicationSerializer(
+                student.company_applications,
+                many=True,
+            ).data,
+        }
+    )
 
 
 @api_view(["GET"])

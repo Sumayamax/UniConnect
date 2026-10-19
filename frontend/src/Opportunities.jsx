@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { authenticatedFetch } from './api.js'
+import MatchRing from './MatchRing.jsx'
 
 function formatApiErrors(data) {
   if (typeof data?.detail === 'string') {
@@ -316,7 +317,11 @@ function Opportunities({ onNavigate, user }) {
       {!loading && errors.length === 0 && opportunities.length > 0 && (
         <section className="opportunity-list" aria-label="Available opportunities">
           {sortedOpportunities.map((opportunity) => (
-            <article className="opportunity-card" key={opportunity.id}>
+            <article
+              className="opportunity-card"
+              key={opportunity.id}
+              style={{ '--card-index': sortedOpportunities.indexOf(opportunity) }}
+            >
               <div className="opportunity-card-header">
                 <div>
                   <h2>{opportunity.title}</h2>
@@ -379,13 +384,23 @@ function Opportunities({ onNavigate, user }) {
 
               {user?.role === 'student' && (
                 <div className="opportunity-matching">
-                  <strong>{opportunity.match_percentage}% Match</strong>
+                  <div className="matching-summary">
+                    <MatchRing value={opportunity.match_percentage} size={68} />
+                    <div>
+                      <strong>Smart Match</strong>
+                      <p>Based on your profile and skills</p>
+                    </div>
+                  </div>
                   <div className="matching-skills">
                     <span className="matching-label">Matched skills</span>
                     {opportunity.matched_skills?.length ? (
                       <span className="skill-list">
-                        {opportunity.matched_skills.map((skill) => (
-                          <span className="skill-tag matched-skill-tag" key={skill}>
+                        {opportunity.matched_skills.map((skill, index) => (
+                          <span
+                            className="skill-tag matched-skill-tag"
+                            key={skill}
+                            style={{ '--skill-index': index }}
+                          >
                             {skill}
                           </span>
                         ))}
@@ -436,6 +451,18 @@ function Opportunities({ onNavigate, user }) {
                   )}
                 </div>
               )}
+
+              <div className="opportunity-card-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onNavigate('opportunity-details', {
+                    opportunityId: opportunity.id,
+                  })}
+                >
+                  View Details <span className="details-arrow" aria-hidden="true">-&gt;</span>
+                </button>
+              </div>
             </article>
           ))}
         </section>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Register({ onNavigate }) {
+function Register({ onNavigate, onSwitch }) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -52,11 +52,14 @@ function Register({ onNavigate }) {
   }
 
   return (
-    <main className="home">
-      <h1>Register</h1>
-      <p>Create a UniConnect account</p>
+    <div className="auth-form-content">
+      <div className="auth-form-heading">
+        <span className="auth-eyebrow">Create your account</span>
+        <h2>Join UniConnect</h2>
+        <p>Build your profile and find your next opportunity.</p>
+      </div>
 
-      <form className="register-form" onSubmit={handleSubmit}>
+      <form className="auth-form register-form" onSubmit={handleSubmit}>
         <label>
           Username
           <input
@@ -113,15 +116,15 @@ function Register({ onNavigate }) {
         </ul>
       )}
 
-      <nav className="page-nav">
+      <nav className="page-nav auth-form-nav">
         <button type="button" className="link-button" onClick={() => onNavigate('home')}>
           Home
         </button>
-        <button type="button" className="link-button" onClick={() => onNavigate('login')}>
-          Login
+        <button type="button" className="link-button auth-switch-button" onClick={() => onSwitch('login')}>
+          Already a member? <strong>Sign in</strong>
         </button>
       </nav>
-    </main>
+    </div>
   )
 }
 
